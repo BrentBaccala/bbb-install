@@ -471,7 +471,8 @@ get_IP() {
     need_pkg netcat-openbsd
 
     echo "Waiting for port 443 to clear "
-    while netstat -antp | grep TIME_WAIT | grep -q ":443"; do sleep 1; echo -n '.'; done
+    # netstat fields 4 and 6 are Local Address and State
+    while netstat -ant | awk '{print $4, $6}' | grep TIME_WAIT | grep -q ":443"; do sleep 1; echo -n '.'; done
     echo 
 
     nc -l -p 443 > /dev/null 2>&1 &
