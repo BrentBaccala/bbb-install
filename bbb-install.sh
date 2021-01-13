@@ -697,10 +697,6 @@ configure_HTML5() {
   fi
 
 
-  if [ -f /var/www/bigbluebutton/client/conf/config.xml ]; then
-    sed -i 's/offerWebRTC="false"/offerWebRTC="true"/g' /var/www/bigbluebutton/client/conf/config.xml
-  fi
-
   # Make the HTML5 client default
   sed -i 's/^attendeesJoinViaHTML5Client=.*/attendeesJoinViaHTML5Client=true/'   $SERVLET_DIR/WEB-INF/classes/bigbluebutton.properties
   sed -i 's/^moderatorsJoinViaHTML5Client=.*/moderatorsJoinViaHTML5Client=true/' $SERVLET_DIR/WEB-INF/classes/bigbluebutton.properties
@@ -783,13 +779,7 @@ HERE
 
 
 install_docker() {
-  need_pkg software-properties-common openssl
-
-  if ! dpkg -l | grep -q linux-image-extra-virtual; then
-    apt-get install -y \
-      linux-image-extra-$(uname -r) \
-      linux-image-extra-virtual
-  fi
+  need_pkg apt-transport-https ca-certificates curl gnupg-agent software-properties-common openssl
 
   # Install Docker
   if ! apt-key list | grep -q Docker; then
@@ -803,7 +793,7 @@ install_docker() {
      stable"
 
     apt-get update
-    need_pkg docker-ce
+    need_pkg docker-ce docker-ce-cli containerd.io
   fi
   if ! which docker; then err "Docker did not install"; fi
 
@@ -816,10 +806,6 @@ install_docker() {
 
 
 install_ssl() {
-  if [ -f /var/www/bigbluebutton/client/conf/config.xml ]; then
-    sed -i 's/tryWebRTCFirst="false"/tryWebRTCFirst="true"/g' /var/www/bigbluebutton/client/conf/config.xml
-  fi
-
   if ! grep -q $HOST /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml; then
     bbb-conf --setip $HOST
   fi
@@ -983,12 +969,6 @@ HERE
   fi
 
   sed -i 's/bigbluebutton.web.serverURL=http:/bigbluebutton.web.serverURL=https:/g' $SERVLET_DIR/WEB-INF/classes/bigbluebutton.properties
-
-  if [ -f /var/www/bigbluebutton/client/conf/config.xml ]; then
-    sed -i 's|http://|https://|g' /var/www/bigbluebutton/client/conf/config.xml
-    sed -i 's/jnlpUrl=http/jnlpUrl=https/g'   /usr/share/red5/webapps/screenshare/WEB-INF/screenshare.properties
-    sed -i 's/jnlpFile=http/jnlpFile=https/g' /usr/share/red5/webapps/screenshare/WEB-INF/screenshare.properties
-  fi
 
   yq w -i /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml playback_protocol https
   chmod 644 /usr/local/bigbluebutton/core/scripts/bigbluebutton.yml 
