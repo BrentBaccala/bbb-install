@@ -355,7 +355,7 @@ HERE
     configure_coturn
   fi
 
-  apt-get auto-remove -y
+  # apt-get auto-remove -y
 
   if systemctl status freeswitch.service | grep -q SETSCHEDULER; then
     sed -i "s/^CPUSchedulingPolicy=rr/#CPUSchedulingPolicy=rr/g" /lib/systemd/system/freeswitch.service
