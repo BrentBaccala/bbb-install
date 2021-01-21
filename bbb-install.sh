@@ -645,33 +645,13 @@ check_nat() {
     xmlstarlet edit --inplace --update '//param[@name="ext-sip-ip"]/@value' --value "\$\${external_sip_ip}" /opt/freeswitch/conf/sip_profiles/external.xml
 
     sed -i "s/$INTERNAL_IP:/$IP:/g" /etc/bigbluebutton/nginx/sip.nginx
-    ip addr add $IP dev lo
 
-    # If dummy NIC is not in dummy-nic.service (or the file does not exist), update/create it
-    if ! grep -q $IP /lib/systemd/system/dummy-nic.service > /dev/null 2>&1; then
-      if [ -f /lib/systemd/system/dummy-nic.service ]; then 
-        DAEMON_RELOAD=true; 
-      fi
+    need_pkg bbb-dummy-nic
 
-      cat > /lib/systemd/system/dummy-nic.service << HERE
-[Unit]
-Description=Configure dummy NIC for FreeSWITCH
-After=network.target
-
-[Service]
-ExecStart=/sbin/ip addr add $IP dev lo
-
-[Install]
-WantedBy=multi-user.target
-HERE
-
-      if [ "$DAEMON_RELOAD" == "true" ]; then
-        systemctl daemon-reload
-        systemctl restart dummy-nic
-      else
-        systemctl enable dummy-nic
-        systemctl start dummy-nic
-      fi
+    if ! grep -q $IP /etc/default/public-ip; then
+      systemctl stop dummy-nic
+      sed -i "s/^PUBLIC_IP=.*/PUBLIC_IP=$IP/" /etc/default/public-ip
+      systemctl start dummy-nic
     fi
   fi
 }
