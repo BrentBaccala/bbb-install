@@ -639,21 +639,6 @@ fi
 check_nat() {
   xmlstarlet edit --inplace --update '//X-PRE-PROCESS[@cmd="set" and starts-with(@data, "external_rtp_ip=")]/@data' --value "external_rtp_ip=$IP" /opt/freeswitch/conf/vars.xml
   xmlstarlet edit --inplace --update '//X-PRE-PROCESS[@cmd="set" and starts-with(@data, "external_sip_ip=")]/@data' --value "external_sip_ip=$IP" /opt/freeswitch/conf/vars.xml
-
-  if [ ! -z "$INTERNAL_IP" ]; then
-    xmlstarlet edit --inplace --update '//param[@name="ext-rtp-ip"]/@value' --value "\$\${external_rtp_ip}" /opt/freeswitch/conf/sip_profiles/external.xml
-    xmlstarlet edit --inplace --update '//param[@name="ext-sip-ip"]/@value' --value "\$\${external_sip_ip}" /opt/freeswitch/conf/sip_profiles/external.xml
-
-    sed -i "s/$INTERNAL_IP:/$IP:/g" /etc/bigbluebutton/nginx/sip.nginx
-
-    need_pkg bbb-dummy-nic
-
-    if ! grep -q $IP /etc/default/public-ip; then
-      systemctl stop dummy-nic
-      sed -i "s/^PUBLIC_IP=.*/PUBLIC_IP=$IP/" /etc/default/public-ip
-      systemctl start dummy-nic
-    fi
-  fi
 }
 
 check_LimitNOFILE() {
@@ -942,7 +927,6 @@ server {
 HERE
 
   # Configure rest of BigBlueButton Configuration for SSL
-  xmlstarlet edit --inplace --update '//param[@name="wss-binding"]/@value' --value "$IP:7443" /opt/freeswitch/conf/sip_profiles/external.xml
  
   source /etc/bigbluebutton/bigbluebutton-release
   if [ ! -z "$(echo $BIGBLUEBUTTON_RELEASE | grep '2.2')" ] && [ "$(echo "$BIGBLUEBUTTON_RELEASE" | cut -d\. -f3)" -lt 29 ]; then
@@ -950,8 +934,7 @@ HERE
   else
     # Use nginx as proxy for WSS -> WS (see https://github.com/bigbluebutton/bigbluebutton/issues/9667)
     yq w -i /usr/share/meteor/bundle/programs/server/assets/app/config/settings.yml public.media.sipjsHackViaWs true
-    sed -i "s/proxy_pass .*/proxy_pass http:\/\/$IP:5066;/g" /etc/bigbluebutton/nginx/sip.nginx
-    xmlstarlet edit --inplace --update '//param[@name="ws-binding"]/@value' --value "$IP:5066" /opt/freeswitch/conf/sip_profiles/external.xml
+    dpkg-reconfigure bbb-html5
   fi
 
   sed -i 's/bigbluebutton.web.serverURL=http:/bigbluebutton.web.serverURL=https:/g' $SERVLET_DIR/WEB-INF/classes/bigbluebutton.properties
