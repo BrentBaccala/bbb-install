@@ -784,13 +784,7 @@ install_docker() {
     apt-get update
     need_pkg docker-ce docker-ce-cli containerd.io
   fi
-  if ! which docker; then err "Docker did not install"; fi
-
-  # Install Docker Compose
-  if dpkg -l | grep -q docker-compose; then
-    apt-get purge -y docker-compose
-  fi
-  if ! which docker; then err "Docker did not install"; fi
+  if ! which docker >/dev/null; then err "Docker did not install"; fi
 }
 
 
