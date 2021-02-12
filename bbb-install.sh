@@ -518,6 +518,10 @@ get_IP() {
   if [ -z "$IP" ]; then err "Unable to determine local IP address."; fi
 }
 
+is_pkg_installed() {
+  [[ $(dpkg-query -W -f '${db:status-status}' $1 2>/dev/null) == "installed" ]]
+}
+
 need_pkg() {
   check_root
 
@@ -600,7 +604,9 @@ check_coturn() {
 }
 
 check_apache2() {
-  if dpkg -l | grep -q apache2-bin; then err "You must uninstall the Apache2 server first"; fi
+  if is_pkg_installed apache2-bin; then
+    err "You must uninstall the Apache2 server first"
+  fi
 }
 
 # If running under LXC, then modify the FreeSWITCH systemctl service so it does not use realtime scheduler
@@ -688,7 +694,7 @@ install_greenlight(){
   install_docker
 
   # Install Docker Compose
-  if dpkg -l | grep -q docker-compose; then
+  if is_pkg_installed docker-compose; then
     apt-get purge -y docker-compose
   fi
 
@@ -766,7 +772,7 @@ install_docker() {
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
   fi
 
-  if ! dpkg -l | grep -q docker-ce; then
+  if ! is_pkg_installed docker-ce; then
     add-apt-repository \
      "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
      $(lsb_release -cs) \
