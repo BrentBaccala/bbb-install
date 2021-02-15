@@ -698,16 +698,6 @@ configure_HTML5() {
 install_greenlight(){
   install_docker
 
-  # Install Docker Compose
-  if is_pkg_installed docker-compose; then
-    apt-get purge -y docker-compose
-  fi
-
-  if [ ! -x /usr/local/bin/docker-compose ]; then
-    curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-  fi
-
   if [ ! -d ~/greenlight ]; then
     mkdir -p ~/greenlight
   fi
@@ -762,8 +752,14 @@ HERE
     docker rm -f greenlight-v2
   fi
 
+  # Ubuntu 18's current (February 2021) version of docker-compose is 1.17.1
+  # Our greenlight documentation says that Ubuntu 16's version of docker-compose was too old,
+  #    which is probably why we don't use the system version of docker-compose.
+  # Do we still need to download an updated version on Ubuntu 18?
+
+  DOCKER_COMPOSE_URL="https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)"
   if ! docker ps | grep -q greenlight; then
-    docker-compose -f ~/greenlight/docker-compose.yml up -d
+    wget -qO- $DOCKER_COMPOSE_URL | bash -s -- -f ~/greenlight/docker-compose.yml up -d
     sleep 5
   fi
 }
