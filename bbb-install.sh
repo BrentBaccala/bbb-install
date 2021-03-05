@@ -326,6 +326,10 @@ HERE
   need_pkg bigbluebutton
   need_pkg bbb-html5
 
+  # nginx can't seem to dynamically resize its hash bucket for server names,
+  # and I've seen it fail to start far too many times for this reason  -bwb
+  sed -i '/server_names_hash_bucket_size/s/^\(\s*\)# /\1/' /etc/nginx/nginx.conf
+
   if [ -f /usr/share/bbb-web/WEB-INF/classes/bigbluebutton.properties ]; then
     # 2.2
     SERVLET_DIR=/usr/share/bbb-web
