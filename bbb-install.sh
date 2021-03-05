@@ -544,9 +544,16 @@ need_pkg() {
     SOURCES_FETCHED=true
   fi
 
-  if ! dpkg -s ${@:1} >/dev/null 2>&1; then
+  # Why a while statement and not an if statement?
+  #
+  # I've found that all that's required is a single download to
+  # timeout for the script to advance past this step without
+  # installing the required package.  I'd rather it loop forever than
+  # keep going with a broken install.     Brent Baccala
+
+  while ! dpkg -s ${@:1} >/dev/null 2>&1; do
     LC_CTYPE=C.UTF-8 apt-get install -yq ${@:1}
-  fi
+  done
 }
 
 need_ppa() {
