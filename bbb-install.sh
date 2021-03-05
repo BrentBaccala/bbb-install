@@ -550,7 +550,7 @@ need_pkg() {
 }
 
 need_ppa() {
-  need_pkg software-properties-common 
+  need_pkg software-properties-common wget
   if [ ! -f /etc/apt/sources.list.d/$1 ]; then
     LC_CTYPE=C.UTF-8 add-apt-repository -y $2 
   fi
@@ -848,7 +848,7 @@ HERE
 
     if [ -z "$PROVIDED_CERTIFICATE" ]; then
       if ! certbot --email $EMAIL --agree-tos --rsa-key-size 4096 -w /var/www/bigbluebutton-default/ \
-           -d $HOST --deploy-hook "systemctl restart nginx" $LETS_ENCRYPT_OPTIONS certonly; then
+           -d $HOST --deploy-hook "systemctl reload nginx" $LETS_ENCRYPT_OPTIONS certonly; then
         cp /tmp/bigbluebutton.bak /etc/nginx/sites-available/bigbluebutton
         systemctl restart nginx
         err "Let's Encrypt SSL request for $HOST did not succeed - exiting"
