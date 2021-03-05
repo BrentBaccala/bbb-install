@@ -409,13 +409,6 @@ HERE
     fi
   fi
 
-  # Fix URLS for upgrade from earlier version of 2.3-dev
-  if [ "$DISTRO" == "bionic" ]; then
-    sed -i 's/^defaultHTML5ClientUrl=${bigbluebutton.web.serverURL}\/html5client\/%%INSTANCEID%%\/join/defaultHTML5ClientUrl=${bigbluebutton.web.serverURL}\/html5client\/join/g' /usr/share/bbb-web/WEB-INF/classes/bigbluebutton.properties
-
-    sed -i 's/^defaultGuestWaitURL=${bigbluebutton.web.serverURL}\/html5client\/%%INSTANCEID%%\/guestWait/defaultGuestWaitURL=${bigbluebutton.web.serverURL}\/html5client\/guestWait/g' /usr/share/bbb-web/WEB-INF/classes/bigbluebutton.properties
-  fi
-
   if [ ! -z "$HOST" ]; then
     bbb-conf --setip $HOST
   else
